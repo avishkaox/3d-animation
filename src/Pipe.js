@@ -1,18 +1,18 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 
-function Pipe({ curve, onClickPoint, thickness }) {
+function Pipe({ curve, onClickPoint, thickness , color , opacity }) {
   const geometry = useMemo(
     () => new THREE.TubeGeometry(curve, 100, thickness, 8, false),
     [curve, thickness]
   );
   const material = useMemo(
     () => new THREE.MeshStandardMaterial({ 
-        color: "#71c7d8",
+        color: color,
         transparent: true,
-        opacity: 0.4,
+        opacity: opacity,
      }),
-    []
+    [color , opacity]
   );
 
   return (

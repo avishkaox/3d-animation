@@ -1,82 +1,85 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { gsap } from "gsap";
 import * as THREE from "three";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
-function Signal({ curve, targetPoint, initialT }) {
+function Signal({ curve, targetPoint, initialT = 0, onComplete }) {
   const meshRef = useRef();
   const tRef = useRef(initialT);
-  const direction = useRef(1);
-  const tweenRef = useRef(null);
+  const dir = useRef(1);
+  const tweenRef = useRef();
+  const timeoutRef = useRef();
 
-  // Pre-sample points to find closestT when needed
-  const sampledPoints = useMemo(() => {
-    if (!curve) return [];
-    return Array.from({ length: 101 }, (_, i) => {
-      const t = i / 100;
-      return { t, point: curve.getPoint(t) };
+  const sampled = useMemo(() => {
+    if (!curve || typeof curve.getPoint !== "function") return [];
+    return Array.from({ length: 50 }, (_, i) => {
+      const t = i / 49;
+      const point = curve.getPoint(t);
+      return { t, point };
     });
   }, [curve]);
 
   useFrame(() => {
-    if (!targetPoint && meshRef.current) {
-      tRef.current += 0.001 * direction.current;
+    if (!curve || !meshRef.current || targetPoint) return;
 
-      if (tRef.current >= 1) {
-        tRef.current = 1;
-        direction.current = -1;
-      } else if (tRef.current <= 0) {
-        tRef.current = 0;
-        direction.current = 1;
-      }
+    tRef.current += 0.002 * dir.current;
+    if (tRef.current >= 1 || tRef.current <= 0) dir.current *= -1;
 
-      const point = curve.getPoint(tRef.current);
+    const point = curve.getPoint(THREE.MathUtils.clamp(tRef.current, 0, 1));
+    if (point) {
       meshRef.current.position.copy(point);
     }
   });
 
   useEffect(() => {
-    if (!targetPoint || !curve || !sampledPoints.length) return;
+    if (!curve || !targetPoint || sampled.length === 0) return;
 
-    const { t: closestT } = sampledPoints.reduce(
-      (closest, current) => {
-        const dist = current.point.distanceTo(targetPoint);
-        return dist < closest.dist ? { t: current.t, dist } : closest;
+    const { t: closestT } = sampled.reduce(
+      (acc, cur) => {
+        const d = cur.point.distanceTo(targetPoint);
+        return d < acc.d ? { t: cur.t, d } : acc;
       },
-      { t: 0, dist: Infinity }
+      { t: 0, d: Infinity }
     );
 
-    if (tweenRef.current) {
-      tweenRef.current.kill();
-    }
-
+    tweenRef.current?.kill();
     tweenRef.current = gsap.to(tRef, {
       current: closestT,
       duration: Math.abs(closestT - tRef.current) * 5,
-      ease: "back.out(1.7)",
+     ease: "back.out(1.7)",
       onUpdate: () => {
         const t = THREE.MathUtils.clamp(tRef.current, 0, 1);
         const point = curve.getPoint(t);
-        if (meshRef.current && point) {
+        if (point && meshRef.current) {
           meshRef.current.position.copy(point);
         }
+      },
+      //time out function
+      onComplete: () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          targetPoint = null;
+        }, 2000); // 2000ms = 2 seconds
       },
     });
 
     return () => {
-      if (tweenRef.current) {
-        tweenRef.current.kill();
-      }
+      tweenRef.current?.kill();
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [targetPoint, curve, sampledPoints]);
+  }, [curve, targetPoint, sampled]);
+
+  if (!curve) return null;
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.2, 16, 16]} />
+      <sphereGeometry args={[0.09, 16, 16]} />
       <meshStandardMaterial
-        color="yellow"
-        emissive="yellow"
-        emissiveIntensity={2}
+        color="#d7781a"
+        emissive="#d7781a"
+        emissiveIntensity={5}
+        toneMapped={false}
         metalness={0.3}
         roughness={0.4}
       />
@@ -84,4 +87,18 @@ function Signal({ curve, targetPoint, initialT }) {
   );
 }
 
-export default Signal;
+export default function SceneWithBloom(props) {
+  return (
+    <>
+      <Signal {...props} />
+      <EffectComposer disableNormalPass>
+        <Bloom
+          luminanceThreshold={1}
+          luminanceSmoothing={0.025}
+          intensity={1.5}
+          mipmapBlur
+        />
+      </EffectComposer>
+    </>
+  );
+}
