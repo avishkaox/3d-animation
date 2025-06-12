@@ -74,7 +74,7 @@ function Signal({ curve, targetPoint, initialT = 0, onComplete }) {
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.09, 16, 16]} />
+      <sphereGeometry args={[0.07, 16, 16]} />
       <meshStandardMaterial
         color="#d7781a"
         emissive="#d7781a"
