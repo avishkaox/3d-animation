@@ -57,7 +57,7 @@ function NeuronPipe() {
 
   return (
     <Canvas
-      style={{ width: "100vw", height: "100vh", overflow: "hidden" }}
+      style={{ width: "70vw", height: "70vh", overflow: "hidden" , margin:'auto' }}
       camera={{ position: [25, 5, -15], fov: 25 }}
       performance={{ min: 0.5 }}
       gl={{ powerPreference: "high-performance" }}

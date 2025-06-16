@@ -34,6 +34,7 @@ function Background({ count = 1000 }) {
     }
     return arr;
   }, [count]);
+  
 
   useFrame(() => {
     if (points.current) {
