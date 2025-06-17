@@ -2,16 +2,3 @@ body{
   margin:0;
   overflow: hidden;
 }
-#particles-js {
-  position: fixed;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  top: 0;
-  left: 0;
-  pointer-events: none; /* So clicks go through */
-}
-#root {
-  position: relative;
-  z-index: 1;
-}

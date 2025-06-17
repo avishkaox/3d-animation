@@ -8,11 +8,10 @@ import {
   opacityArray,
   curvesArray,
   signalsArray,
-} from "./services/pipeConfig";
+} from "./services/MaterialConfig";
 import Pipe from "./Pipe";
 import Signal from "./Signal";
 import Background from "./Background";
-
 
 function NeuronPipe() {
   const curves = useMemo(() => curvesArray, []);
@@ -57,8 +56,14 @@ function NeuronPipe() {
 
   return (
     <Canvas
-      style={{ width: "70vw", height: "70vh", overflow: "hidden" , margin:'auto' }}
+      style={{
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        margin: "auto",
+      }}
       camera={{ position: [25, 5, -15], fov: 25 }}
+      // camera={{ position: [10, 10, 10], fov: 50 }}
       performance={{ min: 0.5 }}
       gl={{ powerPreference: "high-performance" }}
       dpr={[1, 2]}
@@ -75,7 +80,7 @@ function NeuronPipe() {
       </EffectComposer>
       <ambientLight />
       <pointLight position={[10, 10, 10]} />
-      <OrbitControls />
+      {/* <OrbitControls /> */}
       {curves.map((curve, i) => (
         <Pipe
           key={i}

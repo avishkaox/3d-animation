@@ -53,7 +53,7 @@ function Background({ count = 1000 }) {
         />
       </bufferGeometry>
       <pointsMaterial
-        color="#ffec93"
+        color="#0c4ac6"
         size={0.2}
         sizeAttenuation
         opacity={0.5}
